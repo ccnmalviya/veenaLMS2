@@ -1,0 +1,49 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+        "s3:PutObject",
+        "s3:GetObject",
+        "s3:DeleteObject"
+      ],
+      "Resource": [
+        "arn:aws:s3:::veenaclasses/products/*",
+        "arn:aws:s3:::veenaclasses/categories/*",
+        "arn:aws:s3:::veenaclasses/brands/*",
+        "arn:aws:s3:::veenaclasses/hero-banners/*",
+        "arn:aws:s3:::veenaclasses/courses/thumbnails/*",
+        "arn:aws:s3:::veenaclasses/courses/lessons/*"
+      ]
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "s3:ListBucket"
+      ],
+      "Resource": "arn:aws:s3:::veenaclasses",
+      "Condition": {
+        "StringLike": {
+          "s3:prefix": [
+            "products/*",
+            "categories/*",
+            "brands/*",
+            "hero-banners/*",
+            "courses/thumbnails/*",
+            "courses/lessons/*"
+          ]
+        }
+      }
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "kms:Decrypt",
+        "kms:GenerateDataKey",
+        "kms:DescribeKey"
+      ],
+      "Resource": "*"
+    }
+  ]
+}

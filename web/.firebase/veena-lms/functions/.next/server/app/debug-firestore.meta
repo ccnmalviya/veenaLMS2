@@ -1,0 +1,15 @@
+{
+  "headers": {
+    "x-nextjs-stale-time": "300",
+    "x-nextjs-prerender": "1",
+    "x-next-cache-tags": "_N_T_/layout,_N_T_/debug-firestore/layout,_N_T_/debug-firestore/page,_N_T_/debug-firestore"
+  },
+  "segmentPaths": [
+    "/_tree",
+    "/_full",
+    "/debug-firestore/__PAGE__",
+    "/debug-firestore",
+    "/_index",
+    "/_head"
+  ]
+}

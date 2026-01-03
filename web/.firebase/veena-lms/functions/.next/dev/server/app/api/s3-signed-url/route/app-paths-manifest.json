@@ -1,0 +1,3 @@
+{
+  "/api/s3-signed-url/route": "app/api/s3-signed-url/route.js"
+}

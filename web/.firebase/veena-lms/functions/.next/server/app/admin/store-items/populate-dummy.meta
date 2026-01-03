@@ -1,0 +1,17 @@
+{
+  "headers": {
+    "x-nextjs-stale-time": "300",
+    "x-nextjs-prerender": "1",
+    "x-next-cache-tags": "_N_T_/layout,_N_T_/admin/layout,_N_T_/admin/store-items/layout,_N_T_/admin/store-items/populate-dummy/layout,_N_T_/admin/store-items/populate-dummy/page,_N_T_/admin/store-items/populate-dummy"
+  },
+  "segmentPaths": [
+    "/_tree",
+    "/_full",
+    "/admin/store-items/populate-dummy/__PAGE__",
+    "/admin/store-items/populate-dummy",
+    "/admin/store-items",
+    "/admin",
+    "/_index",
+    "/_head"
+  ]
+}

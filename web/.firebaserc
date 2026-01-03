@@ -1,0 +1,15 @@
+{
+  "projects": {
+    "default": "veena-lms"
+  },
+  "targets": {
+    "veena-lms": {
+      "hosting": {
+        "lms": [
+          "veena-lms"
+        ]
+      }
+    }
+  },
+  "etags": {}
+}

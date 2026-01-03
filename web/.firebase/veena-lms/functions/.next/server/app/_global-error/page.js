@@ -1,0 +1,11 @@
+var R=require("../../chunks/ssr/[turbopack]_runtime.js")("server/app/_global-error/page.js")
+R.c("server/chunks/ssr/[root-of-the-server]__b70a4403._.js")
+R.c("server/chunks/ssr/Downloads_Telegram Desktop_lms-ecommerce_web_6bbc6140._.js")
+R.c("server/chunks/ssr/1fd5b_next_dist_76d69174._.js")
+R.c("server/chunks/ssr/[root-of-the-server]__e8833c7f._.js")
+R.c("server/chunks/ssr/1fd5b_2106e146._.js")
+R.c("server/chunks/ssr/1fd5b_next_dist_772a24fe._.js")
+R.c("server/chunks/ssr/Downloads_Telegram Desktop_lms-ecommerce_web_src_app_bd7bb24a._.js")
+R.c("server/chunks/ssr/2f7c9_lms-ecommerce_web__next-internal_server_app__global-error_page_actions_f5c8a270.js")
+R.m(65770)
+module.exports=R.m(65770).exports

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { collection, getDocs, query, where, limit } from "firebase/firestore";
@@ -20,7 +20,7 @@ type Product = {
   featured?: boolean;
 };
 
-export function RecommendedProducts() {
+function RecommendedProductsContent() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const searchParams = useSearchParams();
@@ -216,6 +216,14 @@ export function RecommendedProducts() {
         </Link>
       ))}
     </div>
+  );
+}
+
+export function RecommendedProducts() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <RecommendedProductsContent />
+    </Suspense>
   );
 }
 

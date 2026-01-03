@@ -1,0 +1,26 @@
+globalThis.__BUILD_MANIFEST = {
+  "pages": {
+    "/_app": []
+  },
+  "devFiles": [],
+  "polyfillFiles": [
+    "static/chunks/1fd5b_next_dist_build_polyfills_polyfill-nomodule.js"
+  ],
+  "lowPriorityFiles": [],
+  "rootMainFiles": [
+    "static/chunks/[turbopack]_browser_dev_hmr-client_hmr-client_ts_6a6b4550._.js",
+    "static/chunks/1fd5b_next_dist_compiled_react-dom_ab0f5fe7._.js",
+    "static/chunks/1fd5b_next_dist_compiled_react-server-dom-turbopack_edde2ec7._.js",
+    "static/chunks/1fd5b_next_dist_compiled_next-devtools_index_4ca27f75.js",
+    "static/chunks/1fd5b_next_dist_compiled_aa4eea3f._.js",
+    "static/chunks/1fd5b_next_dist_client_9b5087d3._.js",
+    "static/chunks/1fd5b_next_dist_d88ba588._.js",
+    "static/chunks/1fd5b_@swc_helpers_cjs_0cf02f92._.js",
+    "static/chunks/Downloads_Telegram Desktop_lms-ecommerce_web_a0ff3932._.js",
+    "static/chunks/turbopack-Downloads_Telegram Desktop_lms-ecommerce_web_68a678ec._.js"
+  ]
+};
+globalThis.__BUILD_MANIFEST.lowPriorityFiles = [
+"/static/" + process.env.__NEXT_BUILD_ID + "/_buildManifest.js",
+"/static/" + process.env.__NEXT_BUILD_ID + "/_ssgManifest.js"
+];

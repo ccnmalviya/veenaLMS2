@@ -1,0 +1,3 @@
+module.exports=[64079,(a,b,c)=>{let{createClientModuleProxy:d}=a.r(3677);a.n(d("[project]/Downloads/Telegram Desktop/lms-ecommerce/web/node_modules/next/dist/client/components/builtin/global-error.js <module evaluation>"))},25016,(a,b,c)=>{let{createClientModuleProxy:d}=a.r(3677);a.n(d("[project]/Downloads/Telegram Desktop/lms-ecommerce/web/node_modules/next/dist/client/components/builtin/global-error.js"))},76024,a=>{"use strict";a.i(64079);var b=a.i(25016);a.n(b)}];
+
+//# sourceMappingURL=1fd5b_next_dist_client_components_builtin_global-error_bf304a05.js.map

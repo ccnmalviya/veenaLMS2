@@ -1,0 +1,17 @@
+{
+  "headers": {
+    "x-nextjs-stale-time": "300",
+    "x-nextjs-prerender": "1",
+    "x-next-cache-tags": "_N_T_/layout,_N_T_/admin/layout,_N_T_/admin/homepage/layout,_N_T_/admin/homepage/hero/layout,_N_T_/admin/homepage/hero/page,_N_T_/admin/homepage/hero"
+  },
+  "segmentPaths": [
+    "/_tree",
+    "/_full",
+    "/admin/homepage/hero/__PAGE__",
+    "/admin/homepage/hero",
+    "/admin/homepage",
+    "/admin",
+    "/_index",
+    "/_head"
+  ]
+}

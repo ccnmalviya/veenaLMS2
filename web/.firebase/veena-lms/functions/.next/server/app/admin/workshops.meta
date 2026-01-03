@@ -1,0 +1,16 @@
+{
+  "headers": {
+    "x-nextjs-stale-time": "300",
+    "x-nextjs-prerender": "1",
+    "x-next-cache-tags": "_N_T_/layout,_N_T_/admin/layout,_N_T_/admin/workshops/layout,_N_T_/admin/workshops/page,_N_T_/admin/workshops"
+  },
+  "segmentPaths": [
+    "/_tree",
+    "/_full",
+    "/admin/workshops/__PAGE__",
+    "/admin/workshops",
+    "/admin",
+    "/_index",
+    "/_head"
+  ]
+}

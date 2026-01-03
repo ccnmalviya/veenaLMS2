@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { collection, getDocs, query, where, orderBy, limit } from "firebase/firestore";
@@ -96,7 +96,7 @@ const getCategoryImage = (categoryName: string): string => {
   return categoryImageMap["default"];
 };
 
-export default function ClassesPage() {
+function ClassesPageContent() {
   const searchParams = useSearchParams();
   const searchQuery = searchParams?.get("search") || "";
   const selectedCategory = searchParams?.get("category") || "";
@@ -311,7 +311,7 @@ export default function ClassesPage() {
         const queryLower = searchQuery.toLowerCase().trim();
         filtered = filtered.filter((course) => {
           const title = (course.title || "").toLowerCase();
-          const description = (course.shortDescription || course.description || "").toLowerCase();
+          const description = (course.shortDescription || "").toLowerCase();
           const category = (course.category || "").toLowerCase();
           const level = (course.level || "").toLowerCase();
           
@@ -365,7 +365,7 @@ export default function ClassesPage() {
       // Filter by category if selected
       if (selectedCategory) {
         filtered = filtered.filter((course) => {
-          const courseCategoryId = course.categoryId || (course as any).category_id || "";
+          const courseCategoryId = (course as any).categoryId || (course as any).category_id || "";
           const courseCategoryName = (course.category || "").toLowerCase();
           const selectedCategoryLower = selectedCategory.toLowerCase();
           
@@ -382,7 +382,7 @@ export default function ClassesPage() {
         const queryLower = searchQuery.toLowerCase().trim();
         filtered = filtered.filter((course) => {
           const title = (course.title || "").toLowerCase();
-          const description = (course.shortDescription || course.description || "").toLowerCase();
+          const description = (course.shortDescription || "").toLowerCase();
           const category = (course.category || "").toLowerCase();
           const level = (course.level || "").toLowerCase();
           
@@ -439,7 +439,7 @@ export default function ClassesPage() {
         const queryLower = searchQuery.toLowerCase().trim();
         filtered = filtered.filter((course) => {
           const title = (course.title || "").toLowerCase();
-          const description = (course.shortDescription || course.description || "").toLowerCase();
+          const description = (course.shortDescription || "").toLowerCase();
           const category = (course.category || "").toLowerCase();
           const level = (course.level || "").toLowerCase();
           
@@ -462,7 +462,7 @@ export default function ClassesPage() {
         setRecommendedCourses(uniqueFiltered.slice(0, 4));
       } else {
         // No search - show general recommended courses (featured or newest)
-        const featured = filtered.filter(c => c.featured);
+        const featured = filtered.filter(c => (c as any).featured);
         const recommended = featured.length >= 4 
           ? featured.slice(0, 4)
           : filtered.slice(0, 4);
@@ -870,6 +870,14 @@ export default function ClassesPage() {
       {/* 9. Common footer */}
       <Footer />
     </div>
+  );
+}
+
+export default function ClassesPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <ClassesPageContent />
+    </Suspense>
   );
 }
 

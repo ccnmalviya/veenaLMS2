@@ -167,7 +167,7 @@ export default function ProductDetailPage() {
         title: product.title,
         price: product.basePrice,
         image: product.images?.[0] || null,
-        type: product.itemType || product.type || "product",
+        type: product.itemType || (product as any).type || "product",
       });
       alert("Added to cart.");
     } catch (error) {
@@ -199,7 +199,7 @@ export default function ProductDetailPage() {
         title: product.title,
         price: product.basePrice,
         image: product.images?.[0] || null,
-        type: product.itemType || product.type || "product",
+        type: product.itemType || (product as any).type || "product",
         source: "buy_now",
       });
       router.push("/cart");
@@ -525,24 +525,24 @@ export default function ProductDetailPage() {
             )}
 
             {/* Additional Details */}
-            {(product.material || product.dimensions || product.warranty) && (
+            {((product as any).material || (product as any).dimensions || (product as any).warranty) && (
               <div className="pt-6 border-t space-y-2">
-                {product.material && (
+                {(product as any).material && (
                   <div className="flex">
                     <span className="font-semibold text-gray-700 w-32">Material:</span>
-                    <span className="text-gray-600">{product.material}</span>
+                    <span className="text-gray-600">{(product as any).material}</span>
                   </div>
                 )}
-                {product.dimensions && (
+                {(product as any).dimensions && (
                   <div className="flex">
                     <span className="font-semibold text-gray-700 w-32">Dimensions:</span>
-                    <span className="text-gray-600">{product.dimensions}</span>
+                    <span className="text-gray-600">{(product as any).dimensions}</span>
                   </div>
                 )}
-                {product.warranty && (
+                {(product as any).warranty && (
                   <div className="flex">
                     <span className="font-semibold text-gray-700 w-32">Warranty:</span>
-                    <span className="text-gray-600">{product.warranty}</span>
+                    <span className="text-gray-600">{(product as any).warranty}</span>
                   </div>
                 )}
               </div>

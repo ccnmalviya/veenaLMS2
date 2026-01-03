@@ -1,0 +1,18 @@
+{
+  "headers": {
+    "x-nextjs-stale-time": "300",
+    "x-nextjs-prerender": "1",
+    "x-next-cache-tags": "_N_T_/layout,_N_T_/admin/layout,_N_T_/admin/store-items/layout,_N_T_/admin/store-items/categories/layout,_N_T_/admin/store-items/categories/new/layout,_N_T_/admin/store-items/categories/new/page,_N_T_/admin/store-items/categories/new"
+  },
+  "segmentPaths": [
+    "/_tree",
+    "/_full",
+    "/admin/store-items/categories/new/__PAGE__",
+    "/admin/store-items/categories/new",
+    "/admin/store-items/categories",
+    "/admin/store-items",
+    "/admin",
+    "/_index",
+    "/_head"
+  ]
+}

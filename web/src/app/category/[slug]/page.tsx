@@ -90,11 +90,13 @@ export default function CategoryPage() {
           : [];
         if (images.length > 0) {
           try {
-            const signedUrl = await getSignedImageUrl(images[0]);
+            const firstImage = Array.isArray(images[0]) ? images[0][0] : images[0];
+            const signedUrl = await getSignedImageUrl(firstImage);
             imageUrlMap[product.itemId] = signedUrl;
           } catch (error) {
             console.error(`Error getting signed URL for product ${product.itemId}:`, error);
-            imageUrlMap[product.itemId] = images[0];
+            const firstImage = Array.isArray(images[0]) ? images[0][0] : images[0];
+            imageUrlMap[product.itemId] = firstImage;
           }
         }
       }
@@ -192,7 +194,8 @@ export default function CategoryPage() {
                           ? (product.images || (product as any).image) 
                           : [product.images || (product as any).image])
                       : [];
-                    const firstImage = images[0];
+                    const firstImageRaw = images[0];
+                    const firstImage = Array.isArray(firstImageRaw) ? firstImageRaw[0] : firstImageRaw;
                     // Use signed URL if available, otherwise use original
                     const imageUrl = productImageUrls[product.itemId] || firstImage;
                     

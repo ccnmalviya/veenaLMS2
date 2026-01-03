@@ -210,14 +210,14 @@ export default function StaffPage() {
       mobile: staffMember.mobile || "",
       password: "",
       role: staffMember.role,
-      permissions: staffMember.permissions || {
-        courses: true,
-        products: true,
-        orders: true,
-        users: true,
-        staff: false,
-        analytics: true,
-        settings: false,
+      permissions: {
+        courses: staffMember.permissions?.courses ?? true,
+        products: staffMember.permissions?.products ?? true,
+        orders: staffMember.permissions?.orders ?? true,
+        users: staffMember.permissions?.users ?? true,
+        staff: staffMember.permissions?.staff ?? false,
+        analytics: staffMember.permissions?.analytics ?? true,
+        settings: staffMember.permissions?.settings ?? false,
       },
     });
     setShowForm(true);

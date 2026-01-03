@@ -94,7 +94,7 @@ export default function CourseCategoriesPage() {
       
       // Filter to only show categories that have courses OR are active (so admins can add new ones)
       const courseCategories = allCategories.filter(cat => 
-        cat.courseCount > 0 || cat.status === "active"
+        (cat.courseCount && cat.courseCount > 0) || cat.status === "active"
       );
       
       // Sort by orderIndex, then by name

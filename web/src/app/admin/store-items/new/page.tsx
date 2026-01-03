@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { collection, addDoc, getDocs, serverTimestamp, query, where } from "firebase/firestore";
 import { db } from "@/lib/firebaseClient";
@@ -12,7 +12,7 @@ import type { StoreItemType, Category, Brand } from "@/types/store";
 type CourseLanguage = "hindi" | "english" | "hinglish";
 type CourseLevel = "beginner" | "intermediate" | "advanced";
 
-export default function NewStoreItemPage() {
+function NewStoreItemForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [isCourse, setIsCourse] = useState(false);
@@ -946,5 +946,13 @@ export default function NewStoreItemPage() {
         </form>
       </div>
     </AdminLayout>
+  );
+}
+
+export default function NewStoreItemPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <NewStoreItemForm />
+    </Suspense>
   );
 }

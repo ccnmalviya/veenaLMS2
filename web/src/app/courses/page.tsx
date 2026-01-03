@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { collection, getDocs } from "firebase/firestore";
@@ -10,7 +10,7 @@ import { Footer } from "@/components/layout/Footer";
 import { S3Image } from "@/components/common/S3Image";
 import { Course } from "@/types/course";
 
-export default function AllCoursesPage() {
+function AllCoursesPageContent() {
   const searchParams = useSearchParams();
   const searchQuery = searchParams?.get("search") || "";
   const selectedCategory = searchParams?.get("category") || "";
@@ -42,7 +42,7 @@ export default function AllCoursesPage() {
       // Filter by category if selected
       if (selectedCategory) {
         filtered = filtered.filter((course) => {
-          const courseCategoryId = course.categoryId || (course as any).category_id || "";
+          const courseCategoryId = (course as any).categoryId || (course as any).category_id || "";
           const courseCategoryName = (course.category || "").toLowerCase();
           const selectedCategoryLower = selectedCategory.toLowerCase();
 
@@ -59,7 +59,7 @@ export default function AllCoursesPage() {
         const queryLower = searchQuery.toLowerCase().trim();
         filtered = filtered.filter((course) => {
           const title = (course.title || "").toLowerCase();
-          const description = (course.shortDescription || course.description || "").toLowerCase();
+          const description = (course.shortDescription || "").toLowerCase();
           const category = (course.category || "").toLowerCase();
           const level = (course.level || "").toLowerCase();
 
@@ -235,6 +235,14 @@ export default function AllCoursesPage() {
       </main>
       <Footer />
     </div>
+  );
+}
+
+export default function AllCoursesPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <AllCoursesPageContent />
+    </Suspense>
   );
 }
 

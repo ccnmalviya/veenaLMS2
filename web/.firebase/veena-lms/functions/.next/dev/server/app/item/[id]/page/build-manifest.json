@@ -1,0 +1,22 @@
+{
+  "devFiles": [],
+  "ampDevFiles": [],
+  "polyfillFiles": [
+    "static/chunks/094a3_next_dist_build_polyfills_polyfill-nomodule.js"
+  ],
+  "lowPriorityFiles": [],
+  "rootMainFiles": [
+    "static/chunks/[turbopack]_browser_dev_hmr-client_hmr-client_ts_6eb770f8._.js",
+    "static/chunks/094a3_next_dist_compiled_react-dom_8650e4a2._.js",
+    "static/chunks/094a3_next_dist_compiled_react-server-dom-turbopack_cf68c05a._.js",
+    "static/chunks/094a3_next_dist_compiled_next-devtools_index_4f55c6e3.js",
+    "static/chunks/094a3_next_dist_compiled_f8033876._.js",
+    "static/chunks/094a3_next_dist_client_55a93058._.js",
+    "static/chunks/094a3_next_dist_baa98cea._.js",
+    "static/chunks/094a3_@swc_helpers_cjs_494020c3._.js",
+    "static/chunks/Downloads_Telegram Desktop_LMS+Ecommerce_web_a0ff3932._.js",
+    "static/chunks/turbopack-Downloads_Telegram Desktop_LMS+Ecommerce_web_56c59e17._.js"
+  ],
+  "pages": {},
+  "ampFirstPages": []
+}

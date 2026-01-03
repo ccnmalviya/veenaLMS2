@@ -1,5 +1,6 @@
 "use client";
 
+import { Suspense } from "react";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
@@ -20,7 +21,7 @@ type Product = {
   featured?: boolean;
 };
 
-export function RecommendedProducts() {
+function RecommendedProductsContent() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const searchParams = useSearchParams();
@@ -216,6 +217,27 @@ export function RecommendedProducts() {
         </Link>
       ))}
     </div>
+  );
+}
+
+export function RecommendedProducts() {
+  return (
+    <Suspense fallback={
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {[1, 2, 3].map((i) => (
+          <div key={i} className="bg-white rounded-lg shadow-md overflow-hidden animate-pulse">
+            <div className="h-48 bg-gray-200"></div>
+            <div className="p-4">
+              <div className="h-4 bg-gray-200 rounded w-24 mb-2"></div>
+              <div className="h-6 bg-gray-200 rounded w-3/4 mb-2"></div>
+              <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+            </div>
+          </div>
+        ))}
+      </div>
+    }>
+      <RecommendedProductsContent />
+    </Suspense>
   );
 }
 

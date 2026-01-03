@@ -167,7 +167,7 @@ export default function ProductDetailPage() {
         title: product.title,
         price: product.basePrice,
         image: product.images?.[0] || null,
-        type: product.itemType || product.type || "product",
+        type: product.itemType || (product as any).type || "product",
       });
       alert("Added to cart.");
     } catch (error) {
@@ -199,7 +199,7 @@ export default function ProductDetailPage() {
         title: product.title,
         price: product.basePrice,
         image: product.images?.[0] || null,
-        type: product.itemType || product.type || "product",
+        type: product.itemType || (product as any).type || "product",
         source: "buy_now",
       });
       router.push("/cart");

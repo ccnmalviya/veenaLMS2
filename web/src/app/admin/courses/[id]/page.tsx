@@ -2119,11 +2119,11 @@ export default function CourseDetailPage() {
                                               <label className="block text-sm font-medium text-gray-700 mb-1">
                                                 Video Duration
                                               </label>
-                                              {lessonFormData.videoDuration > 0 ? (
+                                              {(lessonFormData.videoDuration ?? 0) > 0 ? (
                                                 <div className="px-3 py-2 border border-gray-300 rounded-lg bg-gray-50">
                                                   <div className="flex items-center justify-between">
                                                     <span className="text-sm text-gray-700">
-                                                      {formatDuration(lessonFormData.videoDuration)}
+                                                      {formatDuration(lessonFormData.videoDuration ?? 0)}
                                                     </span>
                                                     <span className="text-xs text-green-600 font-medium">
                                                       ✓ Auto-calculated
@@ -2131,7 +2131,7 @@ export default function CourseDetailPage() {
                                                   </div>
                                                   <input
                                                     type="hidden"
-                                                    value={lessonFormData.videoDuration}
+                                                    value={lessonFormData.videoDuration ?? 0}
                                                   />
                                                 </div>
                                               ) : (
@@ -2139,9 +2139,9 @@ export default function CourseDetailPage() {
                                                   Duration will be calculated automatically after video upload
                                                 </div>
                                               )}
-                                              {lessonFormData.videoDuration > 0 && (
+                                              {(lessonFormData.videoDuration ?? 0) > 0 && (
                                                 <p className="text-xs text-gray-500 mt-1">
-                                                  ({lessonFormData.videoDuration} seconds) - Auto-calculated from uploaded video
+                                                  ({lessonFormData.videoDuration ?? 0} seconds) - Auto-calculated from uploaded video
                                                 </p>
                                               )}
                                             </div>
@@ -2156,9 +2156,9 @@ export default function CourseDetailPage() {
                                                 <div className="flex items-center gap-2 text-sm text-green-800">
                                                   <span className="text-green-600">✓</span>
                                                   <span>Video uploaded: {lessonFormData.videoUrl.split("/").pop()}</span>
-                                                  {lessonFormData.videoDuration > 0 && (
+                                                  {(lessonFormData.videoDuration ?? 0) > 0 && (
                                                     <span className="ml-2 text-xs">
-                                                      (Duration: {formatDuration(lessonFormData.videoDuration)})
+                                                      (Duration: {formatDuration(lessonFormData.videoDuration ?? 0)})
                                                     </span>
                                                   )}
                                                 </div>
@@ -2653,7 +2653,7 @@ export default function CourseDetailPage() {
                           {formData.price?.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || "0.00"}
                         </span>
                       </div>
-                      {formData.discountedPrice && (
+                      {formData.discountedPrice && formData.price && (
                         <>
                           <div className="flex justify-between text-red-600">
                             <span>Discount:</span>

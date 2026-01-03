@@ -85,6 +85,12 @@ export interface StoreItem {
   videos: string[];
   thumbnailImage?: string;
   
+  // Product specifications (optional, for physical products)
+  material?: string;
+  dimensions?: string;
+  weight?: string;
+  warranty?: string;
+  
   // Bundle (if itemType === "bundle")
   includedItems?: Array<{
     itemId: string;

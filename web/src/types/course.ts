@@ -29,6 +29,7 @@ export interface Course {
   thumbnailImage: string;
   promoVideoUrl?: string;
   status: CourseStatus;
+  featured?: boolean; // Whether to feature this course
   
   // Pricing & Monetization
   price: number;
@@ -65,6 +66,8 @@ export interface Course {
   // Reviews & Ratings
   allowReviews: boolean;
   autoApproveReviews: boolean;
+  averageRating?: number;
+  testimonials?: string[]; // Array of review IDs to display as testimonials
   
   // SEO & Marketing
   seoTitle?: string;
@@ -72,6 +75,17 @@ export interface Course {
   ogImage?: string;
   landingPageHeadline?: string;
   ctaText?: string;
+  
+  // Notifications & Automation
+  notificationsEnabled?: boolean;
+  notifyOnPurchase?: boolean;
+  notifyOnPurchaseEmail?: boolean;
+  notifyOnPurchaseWhatsApp?: boolean;
+  notifyOnLessonCompletion?: boolean;
+  notifyOnCourseCompletion?: boolean;
+  notifyOnCourseCompletionEmail?: boolean;
+  notifyOnInactivity?: boolean;
+  inactivityDays?: number;
   
   // Timestamps
   createdAt?: any;

@@ -1,5 +1,6 @@
 "use client";
 
+import { Suspense } from "react";
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { collection, addDoc, getDocs, serverTimestamp, query, where } from "firebase/firestore";
@@ -12,7 +13,7 @@ import type { StoreItemType, Category, Brand } from "@/types/store";
 type CourseLanguage = "hindi" | "english" | "hinglish";
 type CourseLevel = "beginner" | "intermediate" | "advanced";
 
-export default function NewStoreItemPage() {
+function NewStoreItemContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [isCourse, setIsCourse] = useState(false);
@@ -946,5 +947,13 @@ export default function NewStoreItemPage() {
         </form>
       </div>
     </AdminLayout>
+  );
+}
+
+export default function NewStoreItemPage() {
+  return (
+    <Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}>
+      <NewStoreItemContent />
+    </Suspense>
   );
 }

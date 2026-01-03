@@ -2,10 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 
 // Validate environment variables
-const AWS_REGION = process.env.AWS_REGION || "us-east-1";
-const AWS_ACCESS_KEY_ID = process.env.AWS_ACCESS_KEY_ID;
-const AWS_SECRET_ACCESS_KEY = process.env.AWS_SECRET_ACCESS_KEY;
-const BUCKET_NAME = process.env.AWS_S3_BUCKET_NAME;
+const AWS_REGION = process.env.MY_AWS_REGION || "us-east-1";
+const AWS_ACCESS_KEY_ID = process.env.MY_AWS_ACCESS_KEY_ID;
+const AWS_SECRET_ACCESS_KEY = process.env.MY_AWS_SECRET_ACCESS_KEY;
+const BUCKET_NAME = process.env.MY_AWS_S3_BUCKET_NAME;
 
 if (!AWS_ACCESS_KEY_ID || !AWS_SECRET_ACCESS_KEY) {
   console.error("Missing AWS credentials in environment variables");
@@ -72,7 +72,7 @@ export async function POST(request: NextRequest) {
 
     // Upload to S3
     // Your bucket requires KMS encryption, so we need to include the KMS key ID
-    const kmsKeyId = process.env.AWS_KMS_KEY_ID; // Optional: set in .env.local if you have a specific KMS key
+    const kmsKeyId = process.env.MY_AWS_KMS_KEY_ID; // Optional: set in .env.local if you have a specific KMS key
     
     const putObjectParams: any = {
       Bucket: BUCKET_NAME,

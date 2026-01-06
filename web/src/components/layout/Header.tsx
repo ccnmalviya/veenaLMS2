@@ -131,7 +131,7 @@ export function Header() {
   const handleLogout = async () => {
     await signOut(auth);
     setShowUserMenu(false);
-    router.push("/");
+    router.push("/classes");
   };
 
   return (

@@ -98,7 +98,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
 
   const handleLogout = async () => {
     await signOut(auth);
-    router.push("/login");
+    router.push("/classes");
   };
 
   const menuItems = [

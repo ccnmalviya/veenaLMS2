@@ -7,8 +7,10 @@ const AWS_ACCESS_KEY_ID = process.env.MY_AWS_ACCESS_KEY_ID;
 const AWS_SECRET_ACCESS_KEY = process.env.MY_AWS_SECRET_ACCESS_KEY;
 const BUCKET_NAME = process.env.MY_AWS_S3_BUCKET_NAME;
 
-if (!AWS_ACCESS_KEY_ID || !AWS_SECRET_ACCESS_KEY || !BUCKET_NAME) {
-  console.error("Missing AWS credentials or bucket name");
+const credentialsConfigured = !!(AWS_ACCESS_KEY_ID && AWS_SECRET_ACCESS_KEY && BUCKET_NAME);
+
+if (!credentialsConfigured) {
+  console.error("⚠️ AWS S3 credentials not configured. Images will use direct URLs.");
 }
 
 const s3Client = new S3Client({
@@ -22,17 +24,19 @@ const s3Client = new S3Client({
 export async function GET(request: NextRequest) {
   try {
     // Check if credentials are configured
-    if (!AWS_ACCESS_KEY_ID || !AWS_SECRET_ACCESS_KEY) {
+    if (!credentialsConfigured) {
+      // Return the original URL without signing if credentials are missing
+      const searchParams = request.nextUrl.searchParams;
+      const key = searchParams.get("key");
+      
+      if (key) {
+        console.log("⚠️ Returning direct URL (S3 credentials not configured):", key);
+        return NextResponse.json({ url: key });
+      }
+      
       return NextResponse.json(
-        { error: "AWS credentials not configured" },
-        { status: 500 }
-      );
-    }
-
-    if (!BUCKET_NAME) {
-      return NextResponse.json(
-        { error: "S3 bucket name not configured" },
-        { status: 500 }
+        { error: "AWS S3 credentials not configured. Please set MY_AWS_REGION, MY_AWS_ACCESS_KEY_ID, MY_AWS_SECRET_ACCESS_KEY, and MY_AWS_S3_BUCKET_NAME in environment variables." },
+        { status: 503 }
       );
     }
 

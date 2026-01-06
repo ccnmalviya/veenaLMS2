@@ -14,19 +14,27 @@ export async function getSignedImageUrl(imageUrl: string): Promise<string> {
     const response = await fetch(`/api/s3-signed-url?key=${encodeURIComponent(imageUrl)}`);
     
     if (!response.ok) {
-      const errorText = await response.text();
-      console.error("Failed to get signed URL:", {
-        status: response.status,
-        statusText: response.statusText,
-        error: errorText,
-        imageUrl: imageUrl
-      });
+      // Silently fall back to original URL if signing fails
+      if (response.status === 503) {
+        // S3 credentials not configured - this is expected during initial setup
+        console.warn("⚠️ S3 credentials not configured. Using direct image URLs.");
+      } else {
+        const errorText = await response.text();
+        console.error("Failed to get signed URL:", {
+          status: response.status,
+          statusText: response.statusText,
+          error: errorText,
+          imageUrl: imageUrl
+        });
+      }
       return imageUrl; // Fallback to original URL
     }
 
     const data = await response.json();
     if (data.error) {
-      console.error("Signed URL API error:", data.error);
+      if (!data.error.includes("not configured")) {
+        console.error("Signed URL API error:", data.error);
+      }
       return imageUrl; // Fallback to original URL
     }
     return data.url || imageUrl;

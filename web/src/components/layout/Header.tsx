@@ -118,8 +118,11 @@ export function Header() {
     <header className="bg-white/90 backdrop-blur-md border-b border-gray-100 sticky top-0 z-50">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16 gap-4">
-          {/* Logo */}
-          <Link href="/" className="text-xl md:text-2xl font-bold text-gray-900">
+          {/* Logo - goes to classes if shop is disabled */}
+          <Link 
+            href={shopEnabled ? "/" : "/classes"} 
+            className="text-xl md:text-2xl font-bold text-gray-900"
+          >
             Veena LMS
           </Link>
 

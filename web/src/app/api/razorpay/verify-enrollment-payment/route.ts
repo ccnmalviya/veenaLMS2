@@ -1,25 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
-import { doc, setDoc, getDoc, serverTimestamp } from "firebase/firestore";
-import { initializeApp, getApps, cert } from "firebase-admin/app";
-import { getFirestore } from "firebase-admin/firestore";
-
-// Initialize Firebase Admin (only if not already initialized)
-if (!getApps().length) {
-  try {
-    initializeApp({
-      credential: cert({
-        projectId: process.env.FIREBASE_PROJECT_ID,
-        clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-        privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, "\n"),
-      }),
-    });
-  } catch (error) {
-    console.error("Error initializing Firebase Admin:", error);
-  }
-}
-
-const adminDb = getFirestore();
 
 export async function POST(request: NextRequest) {
   try {
@@ -52,44 +32,14 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Payment verified! Create enrollment
-    const enrollmentId = `${userId}_${courseId}`;
-    const enrollmentData = {
-      userId,
-      courseId,
-      enrolledAt: serverTimestamp(),
-      status: "active",
-      paymentId: razorpay_payment_id,
-      orderId: razorpay_order_id,
-      amount,
-      accessExpiresAt: null, // Lifetime access by default
-      deviceCount: 0,
-      createdAt: serverTimestamp(),
-      updatedAt: serverTimestamp(),
-    };
-
-    await adminDb.collection("enrollments").doc(enrollmentId).set(enrollmentData);
-
-    // Also create payment record
-    const paymentData = {
-      userId,
-      courseId,
-      amount,
-      currency: "INR",
-      razorpayOrderId: razorpay_order_id,
-      razorpayPaymentId: razorpay_payment_id,
-      razorpaySignature,
-      status: "completed",
-      createdAt: serverTimestamp(),
-      updatedAt: serverTimestamp(),
-    };
-
-    await adminDb.collection("payments").add(paymentData);
+    // Payment verified! Return success
+    // Note: The client will create the enrollment document
 
     return NextResponse.json({
       success: true,
-      enrollmentId,
-      message: "Payment verified and enrollment created",
+      message: "Payment verified successfully",
+      razorpay_payment_id,
+      razorpay_order_id,
     });
   } catch (error: any) {
     console.error("Error verifying payment:", error);

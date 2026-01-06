@@ -241,9 +241,30 @@ export default function PublicCoursePage() {
             const verifyData = await verifyResponse.json();
 
             if (verifyData.success) {
-              alert("✅ Payment successful! You are now enrolled in the course.");
-              setIsEnrolled(true);
-              router.push(`/courses/${courseId}/learn`);
+              // Create enrollment document in Firestore
+              try {
+                const enrollmentId = `${currentUser.uid}_${courseId}`;
+                await setDoc(doc(db, "enrollments", enrollmentId), {
+                  userId: currentUser.uid,
+                  courseId,
+                  enrolledAt: serverTimestamp(),
+                  status: "active",
+                  paymentId: verifyData.razorpay_payment_id,
+                  orderId: verifyData.razorpay_order_id,
+                  amount,
+                  accessExpiresAt: null,
+                  deviceCount: 0,
+                  createdAt: serverTimestamp(),
+                  updatedAt: serverTimestamp(),
+                });
+
+                alert("✅ Payment successful! You are now enrolled in the course.");
+                setIsEnrolled(true);
+                router.push(`/courses/${courseId}/learn`);
+              } catch (enrollError) {
+                console.error("Error creating enrollment:", enrollError);
+                alert("Payment successful but enrollment creation failed. Please contact support with payment ID: " + verifyData.razorpay_payment_id);
+              }
             } else {
               throw new Error("Payment verification failed");
             }

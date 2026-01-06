@@ -2,16 +2,37 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { collection, query, where, getDocs, orderBy } from "firebase/firestore";
+import { collection, query, where, getDocs, orderBy, doc, onSnapshot } from "firebase/firestore";
 import { db } from "@/lib/firebaseClient";
 import type { Category } from "@/types/store";
+import type { SiteSettings } from "@/types/siteSettings";
 
 export function CategoryNavigation() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
+  const [shopEnabled, setShopEnabled] = useState(false);
 
   useEffect(() => {
     loadCategories();
+  }, []);
+
+  // Listen to site settings in real-time
+  useEffect(() => {
+    const settingsRef = doc(db, "site_settings", "global");
+    
+    const unsubscribe = onSnapshot(settingsRef, (snapshot) => {
+      if (snapshot.exists()) {
+        const settings = snapshot.data() as SiteSettings;
+        setShopEnabled(settings.shopEnabled || false);
+      } else {
+        setShopEnabled(false);
+      }
+    }, (error) => {
+      console.error("Error listening to site settings:", error);
+      setShopEnabled(false);
+    });
+
+    return () => unsubscribe();
   }, []);
 
   const loadCategories = async () => {
@@ -71,7 +92,12 @@ export function CategoryNavigation() {
     }
   };
 
-  // Always render the component so it's visible
+  // Don't render if shop is disabled
+  if (!shopEnabled) {
+    return null;
+  }
+
+  // Always render the component so it's visible when shop is enabled
   return (
     <div className="bg-white border-b-2 border-gray-300 shadow-md py-4">
       <div className="container mx-auto px-4">

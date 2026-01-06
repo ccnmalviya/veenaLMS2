@@ -135,6 +135,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
             { label: "Classes Video Testimonials", path: "/admin/layouts#classes-testimonials" },
           ]
         },
+        { icon: Settings, label: "Site Settings", path: "/admin/settings", badge: "NEW" },
       ],
     },
     {

@@ -5,7 +5,8 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { onAuthStateChanged, signOut, type User } from "firebase/auth";
 import { auth, db } from "@/lib/firebaseClient";
-import { collection, getDocs } from "firebase/firestore";
+import { collection, getDocs, doc, getDoc, onSnapshot } from "firebase/firestore";
+import type { SiteSettings } from "@/types/siteSettings";
 
 type SearchItem = {
   id: string;
@@ -22,6 +23,7 @@ export function Header() {
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [allItems, setAllItems] = useState<SearchItem[]>([]);
   const [suggestionsOpen, setSuggestionsOpen] = useState(false);
+  const [shopEnabled, setShopEnabled] = useState(false);
 
   // Decide what we are searching based on current page
   const isClassesPage = pathname?.startsWith("/classes");
@@ -32,6 +34,26 @@ export function Header() {
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (u) => setUser(u));
     return () => unsub();
+  }, []);
+
+  // Listen to site settings in real-time
+  useEffect(() => {
+    const settingsRef = doc(db, "site_settings", "global");
+    
+    const unsubscribe = onSnapshot(settingsRef, (snapshot) => {
+      if (snapshot.exists()) {
+        const settings = snapshot.data() as SiteSettings;
+        setShopEnabled(settings.shopEnabled || false);
+      } else {
+        // Default to false if settings don't exist
+        setShopEnabled(false);
+      }
+    }, (error) => {
+      console.error("Error listening to site settings:", error);
+      setShopEnabled(false);
+    });
+
+    return () => unsubscribe();
   }, []);
 
   // Load a lightweight list of products once for search suggestions
@@ -156,16 +178,18 @@ export function Header() {
           <div className="flex items-center gap-4">
             {/* Desktop navigation */}
             <nav className="hidden md:flex items-center gap-4">
-              <Link
-                href="/"
-                className={`text-sm font-medium ${
-                  pathname === "/"
-                    ? "text-blue-600"
-                    : "text-gray-700 hover:text-blue-600"
-                }`}
-              >
-                Shop
-              </Link>
+              {shopEnabled && (
+                <Link
+                  href="/"
+                  className={`text-sm font-medium ${
+                    pathname === "/"
+                      ? "text-blue-600"
+                      : "text-gray-700 hover:text-blue-600"
+                  }`}
+                >
+                  Shop
+                </Link>
+              )}
               <Link
                 href="/classes"
                 className={`text-sm font-medium ${
@@ -178,13 +202,15 @@ export function Header() {
               </Link>
             </nav>
 
-          {/* Cart icon */}
-          <Link
-            href="/cart"
-            className="relative inline-flex h-9 w-9 items-center justify-center rounded-full border border-gray-200 text-gray-700 hover:bg-gray-100"
-          >
-            <span className="text-lg">🛒</span>
-          </Link>
+          {/* Cart icon - only show if shop is enabled */}
+          {shopEnabled && (
+            <Link
+              href="/cart"
+              className="relative inline-flex h-9 w-9 items-center justify-center rounded-full border border-gray-200 text-gray-700 hover:bg-gray-100"
+            >
+              <span className="text-lg">🛒</span>
+            </Link>
+          )}
 
             {/* User section */}
             {!user ? (

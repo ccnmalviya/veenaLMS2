@@ -3227,6 +3227,7 @@ export default function CourseDetailPage() {
                     ) : (
                       <div className="space-y-4">
                         {reviews.map((review) => {
+                          
                           // Get user details (we'd need to load this, but for now show ID)
                           return (
                             <div

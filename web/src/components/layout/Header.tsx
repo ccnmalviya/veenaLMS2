@@ -205,6 +205,15 @@ export function Header() {
               </Link>
             </nav>
 
+          {/* Wishlist icon */}
+          <Link
+            href="/wishlist"
+            className="relative inline-flex h-9 w-9 items-center justify-center rounded-full border border-gray-200 text-gray-700 hover:bg-gray-100"
+            title="Wishlist"
+          >
+            <span className="text-lg">❤️</span>
+          </Link>
+
           {/* Cart icon - only show if shop is enabled */}
           {shopEnabled && (
             <Link

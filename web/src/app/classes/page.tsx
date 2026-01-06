@@ -612,7 +612,7 @@ function ClassesPageContent() {
         {/* 3. Upcoming live classes / offline workshop */}
         <UpcomingSessions />
 
-        {/* 4. Explore Courses - Animated Carousel */}
+        {/* 4. Explore Courses - Infinite Scrolling Carousel */}
         <section className="py-12 bg-white overflow-hidden">
           <div className="container mx-auto px-4">
             <h2 className="text-3xl font-bold mb-2">
@@ -633,86 +633,153 @@ function ClassesPageContent() {
               </div>
             ) : (
               <div className="relative">
-                {/* Animated Course Cards */}
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                  {recommendedCourses.map((course, index) => (
-                    <Link
-                      key={course.id}
-                      href={`/courses/${course.id}`}
-                      className="bg-gray-50 rounded-xl border border-gray-200 p-4 hover:shadow-md transition course-card-animate"
-                      style={{
-                        animation: `slideInRotate 0.8s ease-out ${index * 0.15}s backwards`,
-                      }}
-                    >
-                      <div className="h-32 bg-gray-200 rounded-md mb-3 relative overflow-hidden">
-                        {course.thumbnailImage ? (
-                          <S3Image
-                            src={course.thumbnailImage}
-                            alt={course.title}
-                            className="w-full h-full object-cover"
-                          />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs">
-                            No Image
-                          </div>
-                        )}
-                      </div>
-                      <h3 className="font-semibold text-sm line-clamp-2">
-                        {course.title}
-                      </h3>
-                      <p className="text-xs text-gray-500 mt-1">
-                        {course.category || "Course"} · {course.level || "All Levels"}
-                      </p>
-                      {course.price && (
-                        <p className="text-xs font-semibold text-blue-600 mt-2">
-                          {course.discountedPrice ? (
-                            <>
-                              <span className="line-through text-gray-400 mr-2">
-                                {formatPrice(course.price)}
-                              </span>
-                              {formatPrice(course.discountedPrice)}
-                            </>
+                {/* Infinite Scrolling Container */}
+                <div className="carousel-container">
+                  {/* First Set of Courses */}
+                  <div className="carousel-track">
+                    {recommendedCourses.map((course) => (
+                      <Link
+                        key={`first-${course.id}`}
+                        href={`/courses/${course.id}`}
+                        className="carousel-card bg-white rounded-xl border-2 border-gray-200 p-4 hover:shadow-xl hover:border-blue-400 transition-all flex-shrink-0"
+                      >
+                        <div className="h-40 bg-gray-200 rounded-lg mb-3 relative overflow-hidden">
+                          {course.thumbnailImage ? (
+                            <S3Image
+                              src={course.thumbnailImage}
+                              alt={course.title}
+                              className="w-full h-full object-cover"
+                            />
                           ) : (
-                            formatPrice(course.price)
+                            <div className="w-full h-full flex items-center justify-center text-gray-400 text-sm">
+                              No Image
+                            </div>
                           )}
+                        </div>
+                        <h3 className="font-bold text-base line-clamp-2 mb-2">
+                          {course.title}
+                        </h3>
+                        <p className="text-xs text-gray-600 mb-3">
+                          {course.category || "Course"} · {course.level || "All Levels"}
                         </p>
-                      )}
-                    </Link>
-                  ))}
+                        {course.price && (
+                          <p className="text-sm font-bold text-blue-600">
+                            {course.discountedPrice ? (
+                              <>
+                                <span className="line-through text-gray-400 mr-2 text-xs">
+                                  {formatPrice(course.price)}
+                                </span>
+                                {formatPrice(course.discountedPrice)}
+                              </>
+                            ) : (
+                              formatPrice(course.price)
+                            )}
+                          </p>
+                        )}
+                      </Link>
+                    ))}
+                    {/* Duplicate Set for Seamless Loop */}
+                    {recommendedCourses.map((course) => (
+                      <Link
+                        key={`second-${course.id}`}
+                        href={`/courses/${course.id}`}
+                        className="carousel-card bg-white rounded-xl border-2 border-gray-200 p-4 hover:shadow-xl hover:border-blue-400 transition-all flex-shrink-0"
+                      >
+                        <div className="h-40 bg-gray-200 rounded-lg mb-3 relative overflow-hidden">
+                          {course.thumbnailImage ? (
+                            <S3Image
+                              src={course.thumbnailImage}
+                              alt={course.title}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center text-gray-400 text-sm">
+                              No Image
+                            </div>
+                          )}
+                        </div>
+                        <h3 className="font-bold text-base line-clamp-2 mb-2">
+                          {course.title}
+                        </h3>
+                        <p className="text-xs text-gray-600 mb-3">
+                          {course.category || "Course"} · {course.level || "All Levels"}
+                        </p>
+                        {course.price && (
+                          <p className="text-sm font-bold text-blue-600">
+                            {course.discountedPrice ? (
+                              <>
+                                <span className="line-through text-gray-400 mr-2 text-xs">
+                                  {formatPrice(course.price)}
+                                </span>
+                                {formatPrice(course.discountedPrice)}
+                              </>
+                            ) : (
+                              formatPrice(course.price)
+                            )}
+                          </p>
+                        )}
+                      </Link>
+                    ))}
+                  </div>
                 </div>
               </div>
             )}
           </div>
 
-          {/* Animation Styles */}
+          {/* Carousel Styles */}
           <style jsx>{`
-            @keyframes slideInRotate {
+            .carousel-container {
+              overflow: hidden;
+              position: relative;
+              width: 100%;
+              padding: 20px 0;
+            }
+
+            .carousel-track {
+              display: flex;
+              gap: 24px;
+              animation: scroll 40s linear infinite;
+              will-change: transform;
+            }
+
+            .carousel-card {
+              width: 280px;
+              min-width: 280px;
+            }
+
+            @keyframes scroll {
               0% {
-                opacity: 0;
-                transform: translateX(-100px) rotate(-15deg) scale(0.8);
-              }
-              50% {
-                opacity: 0.5;
-                transform: translateX(20px) rotate(5deg) scale(0.95);
+                transform: translateX(0);
               }
               100% {
-                opacity: 1;
-                transform: translateX(0) rotate(0deg) scale(1);
+                transform: translateX(-50%);
               }
             }
 
-            @keyframes pulse {
-              0%, 100% {
-                opacity: 1;
-              }
-              50% {
-                opacity: 0.5;
-              }
+            .carousel-track:hover {
+              animation-play-state: paused;
             }
 
-            .course-card-animate:hover {
-              transform: translateY(-5px) rotate(1deg);
-              transition: transform 0.3s ease;
+            /* Gradient fade on edges */
+            .carousel-container::before,
+            .carousel-container::after {
+              content: '';
+              position: absolute;
+              top: 0;
+              bottom: 0;
+              width: 100px;
+              z-index: 10;
+              pointer-events: none;
+            }
+
+            .carousel-container::before {
+              left: 0;
+              background: linear-gradient(to right, white, transparent);
+            }
+
+            .carousel-container::after {
+              right: 0;
+              background: linear-gradient(to left, white, transparent);
             }
           `}</style>
         </section>

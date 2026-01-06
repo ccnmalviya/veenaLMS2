@@ -508,9 +508,6 @@ function ClassesPageContent() {
                 >
                   Explore Courses
                 </Link>
-                <button className="px-6 py-3 bg-white text-gray-900 rounded-lg text-sm font-semibold hover:bg-gray-100">
-                  View Learning Paths
-                </button>
               </div>
             </div>
             <div className="grid grid-cols-2 gap-4 text-sm">

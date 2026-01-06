@@ -1,524 +1,253 @@
-/* eslint-disable @next/next/no-img-element */
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import {
-  RecaptchaVerifier,
-  signInWithPhoneNumber,
-  signInWithEmailAndPassword,
-  createUserWithEmailAndPassword,
-  updateProfile,
-} from "firebase/auth";
-import {
-  doc,
-  getDoc,
-  serverTimestamp,
-  setDoc,
-} from "firebase/firestore";
-import { auth, db } from "../../lib/firebaseClient";
-
-type AuthMode = "login" | "register";
-type AuthMethod = "phone" | "email";
-
-type UserProfile = {
-  name: string;
-  mobile: string;
-  email: string;
-  city: string;
-  state: string;
-  country: string;
-  pincode: string;
-  gps_location: { lat: number; lng: number } | null;
-  role: "student" | "instructor" | "admin" | "super_admin" | "affiliate" | "support";
-  created_at: any;
-  updated_at: any;
-};
+import { useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from "firebase/auth";
+import { auth, db } from "@/lib/firebaseClient";
+import { doc, setDoc, serverTimestamp } from "firebase/firestore";
+import Link from "next/link";
+import { Header } from "@/components/layout/Header";
+import { Footer } from "@/components/layout/Footer";
 
 export default function LoginPage() {
   const router = useRouter();
-  const [authMode, setAuthMode] = useState<AuthMode>("login");
-  const [authMethod, setAuthMethod] = useState<AuthMethod>("phone");
+  const searchParams = useSearchParams();
+  const redirect = searchParams?.get("redirect") || "/dashboard";
 
-  // Shared state
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
-
-  // Phone auth state
-  const [phone, setPhone] = useState("");
-  const [otp, setOtp] = useState("");
-  const [confirmationResult, setConfirmationResult] =
-    useState<import("firebase/auth").ConfirmationResult | null>(null);
-
-  // Email auth state
-  const [name, setName] = useState("");
+  const [isSignUp, setIsSignUp] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [name, setName] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  // Profile fields for registration
-  const [city, setCity] = useState("");
-  const [stateRegion, setStateRegion] = useState("");
-  const [country, setCountry] = useState("");
-  const [pincode, setPincode] = useState("");
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+    setLoading(true);
 
-  // Setup invisible reCAPTCHA for phone auth
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    if (!(window as any).recaptchaVerifier) {
-      (window as any).recaptchaVerifier = new RecaptchaVerifier(
-        auth,
-        "recaptcha-container",
-        {
-          size: "invisible",
-        }
-      );
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+      router.push(redirect);
+    } catch (err: any) {
+      setError(err.message || "Failed to login");
+    } finally {
+      setLoading(false);
     }
-  }, []);
-
-  const resetMessages = () => {
-    setError(null);
-    setSuccess(null);
   };
 
-  const ensureUserDocument = async (uid: string, data?: Partial<UserProfile>) => {
-    const userRef = doc(db, "users", uid);
-    const snap = await getDoc(userRef);
-    if (!snap.exists()) {
-      const now = serverTimestamp();
-      const base: UserProfile = {
-        name: data?.name || "",
-        mobile: data?.mobile || phone || "",
-        email: data?.email || email || "",
-        city: data?.city || city || "",
-        state: data?.state || stateRegion || "",
-        country: data?.country || country || "",
-        pincode: data?.pincode || pincode || "",
-        gps_location: null,
+  const handleSignUp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+
+    if (password !== confirmPassword) {
+      setError("Passwords do not match");
+      return;
+    }
+
+    if (password.length < 6) {
+      setError("Password must be at least 6 characters");
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+
+      // Create user document in Firestore
+      await setDoc(doc(db, "users", user.uid), {
+        email: user.email,
+        displayName: name || email.split("@")[0],
         role: "student",
-        created_at: now,
-        updated_at: now,
-      };
-      await setDoc(userRef, base);
-    }
-    return snap.data() as UserProfile | null;
-  };
-
-  const redirectAfterLogin = async (uid: string) => {
-    const userRef = doc(db, "users", uid);
-    const snap = await getDoc(userRef);
-    const userData = snap.data() as UserProfile | null;
-    const role = userData?.role || "student";
-    
-    // Redirect based on role
-    if (role === "super_admin" || role === "admin") {
-      router.push("/admin");
-    } else {
-      router.push("/dashboard");
-    }
-  };
-
-  const handleSendOtp = async () => {
-    resetMessages();
-    if (!phone) {
-      setError("Enter mobile number with country code, e.g. +91XXXXXXXXXX");
-      return;
-    }
-    try {
-      setLoading(true);
-      const verifier = (window as any).recaptchaVerifier as RecaptchaVerifier;
-      const confirmation = await signInWithPhoneNumber(auth, phone, verifier);
-      setConfirmationResult(confirmation);
-      setSuccess("OTP sent. Please check your phone.");
-    } catch (err: any) {
-      console.error(err);
-      setError(err.message || "Failed to send OTP");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleVerifyOtp = async () => {
-    resetMessages();
-    if (!confirmationResult) {
-      setError("Please request OTP first.");
-      return;
-    }
-    if (!otp) {
-      setError("Enter the OTP you received.");
-      return;
-    }
-    try {
-      setLoading(true);
-      const result = await confirmationResult.confirm(otp);
-      await ensureUserDocument(result.user.uid);
-      setSuccess("Logged in successfully.");
-      // Redirect after a short delay
-      setTimeout(() => {
-        redirectAfterLogin(result.user.uid);
-      }, 1000);
-    } catch (err: any) {
-      console.error(err);
-      setError(err.message || "Invalid OTP");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleEmailLogin = async () => {
-    resetMessages();
-    if (!email || !password) {
-      setError("Email and password are required.");
-      return;
-    }
-    try {
-      setLoading(true);
-      const credential = await signInWithEmailAndPassword(
-        auth,
-        email,
-        password
-      );
-      await ensureUserDocument(credential.user.uid, {
-        email,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
       });
-      setSuccess("Logged in successfully.");
-      // Redirect after a short delay
-      setTimeout(() => {
-        redirectAfterLogin(credential.user.uid);
-      }, 1000);
+
+      router.push(redirect);
     } catch (err: any) {
-      console.error(err);
-      setError(err.message || "Login failed");
+      setError(err.message || "Failed to create account");
     } finally {
       setLoading(false);
     }
   };
-
-  const handleEmailRegister = async () => {
-    resetMessages();
-    if (!name || !email || !password) {
-      setError("Name, email, and password are required.");
-      return;
-    }
-    try {
-      setLoading(true);
-      const credential = await createUserWithEmailAndPassword(
-        auth,
-        email,
-        password
-      );
-      await updateProfile(credential.user, { displayName: name });
-      await ensureUserDocument(credential.user.uid, {
-        name,
-        email,
-        mobile: phone,
-        city,
-        state: stateRegion,
-        country,
-        pincode,
-      });
-      setSuccess("Account created and logged in.");
-      setAuthMode("login");
-      // Redirect after a short delay
-      setTimeout(() => {
-        redirectAfterLogin(credential.user.uid);
-      }, 1000);
-    } catch (err: any) {
-      console.error(err);
-      setError(err.message || "Registration failed");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const isRegister = authMode === "register";
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-950 px-4">
-      <div className="w-full max-w-3xl rounded-2xl bg-slate-900/80 border border-slate-800 shadow-xl p-8 space-y-8">
-        <header className="flex items-center justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-semibold text-white">
-              {isRegister ? "Create your account" : "Welcome back"}
-            </h1>
-            <p className="text-sm text-slate-400 mt-1">
-              Unified LMS + E‑commerce login (one account for courses, products,
-              workshops).
-            </p>
-          </div>
-          <div className="inline-flex rounded-full border border-slate-700 bg-slate-900 p-1">
-            <button
-              type="button"
-              onClick={() => setAuthMode("login")}
-              className={`px-4 py-1 text-xs font-medium rounded-full ${
-                authMode === "login"
-                  ? "bg-indigo-500 text-white"
-                  : "text-slate-300"
-              }`}
-            >
-              Login
-            </button>
-            <button
-              type="button"
-              onClick={() => setAuthMode("register")}
-              className={`px-4 py-1 text-xs font-medium rounded-full ${
-                authMode === "register"
-                  ? "bg-indigo-500 text-white"
-                  : "text-slate-300"
-              }`}
-            >
-              Register
-            </button>
-          </div>
-        </header>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex flex-col">
+      <Header />
 
-        <div className="flex gap-6 flex-col md:flex-row">
-          {/* Left: method selection + forms */}
-          <div className="flex-1 space-y-6">
-            <div className="inline-flex rounded-full border border-slate-700 bg-slate-900 p-1">
-              <button
-                type="button"
-                onClick={() => setAuthMethod("phone")}
-                className={`px-4 py-1 text-xs font-medium rounded-full ${
-                  authMethod === "phone"
-                    ? "bg-emerald-500 text-white"
-                    : "text-slate-300"
-                }`}
-              >
-                Mobile OTP
-              </button>
-              <button
-                type="button"
-                onClick={() => setAuthMethod("email")}
-                className={`px-4 py-1 text-xs font-medium rounded-full ${
-                  authMethod === "email"
-                    ? "bg-emerald-500 text-white"
-                    : "text-slate-300"
-                }`}
-              >
-                Email & Password
-              </button>
+      <main className="flex-1 flex items-center justify-center px-4 py-12">
+        <div className="w-full max-w-md">
+          {/* Login Card */}
+          <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+            {/* Header */}
+            <div className="bg-gradient-to-r from-blue-600 to-purple-600 px-8 py-6 text-white">
+              <h1 className="text-3xl font-bold mb-2">
+                {isSignUp ? "Create Account" : "Welcome Back"}
+              </h1>
+              <p className="text-blue-100">
+                {isSignUp
+                  ? "Start your learning journey today"
+                  : "Sign in to continue your learning"}
+              </p>
             </div>
 
-            {authMethod === "phone" ? (
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm text-slate-200 mb-1">
-                    Mobile number
-                  </label>
-                  <input
-                    type="tel"
-                    className="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/60"
-                    placeholder="+91XXXXXXXXXX"
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                  />
-                </div>
-
-                {isRegister && (
-                  <div className="grid grid-cols-2 gap-3">
-                    <input
-                      type="text"
-                      className="rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/60"
-                      placeholder="Name"
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
-                    />
-                    <input
-                      type="email"
-                      className="rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/60"
-                      placeholder="Email (optional)"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                    />
-                    <input
-                      type="text"
-                      className="rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/60"
-                      placeholder="City"
-                      value={city}
-                      onChange={(e) => setCity(e.target.value)}
-                    />
-                    <input
-                      type="text"
-                      className="rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/60"
-                      placeholder="State"
-                      value={stateRegion}
-                      onChange={(e) => setStateRegion(e.target.value)}
-                    />
-                    <input
-                      type="text"
-                      className="rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/60"
-                      placeholder="Country"
-                      value={country}
-                      onChange={(e) => setCountry(e.target.value)}
-                    />
-                    <input
-                      type="text"
-                      className="rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/60"
-                      placeholder="Pincode"
-                      value={pincode}
-                      onChange={(e) => setPincode(e.target.value)}
-                    />
+            {/* Form */}
+            <div className="p-8">
+              <form onSubmit={isSignUp ? handleSignUp : handleLogin} className="space-y-5">
+                {/* Error Message */}
+                {error && (
+                  <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-red-700 text-sm">
+                    {error}
                   </div>
                 )}
 
-                <div className="flex gap-3">
-                  <button
-                    type="button"
-                    onClick={handleSendOtp}
-                    disabled={loading}
-                    className="inline-flex items-center justify-center rounded-lg bg-emerald-500 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-600 disabled:opacity-60"
-                  >
-                    {loading ? "Sending..." : "Send OTP"}
-                  </button>
-                  <input
-                    type="text"
-                    className="flex-1 rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/60"
-                    placeholder="Enter OTP"
-                    value={otp}
-                    onChange={(e) => setOtp(e.target.value)}
-                  />
-                  <button
-                    type="button"
-                    onClick={handleVerifyOtp}
-                    disabled={loading}
-                    className="inline-flex items-center justify-center rounded-lg bg-indigo-500 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-600 disabled:opacity-60"
-                  >
-                    {loading ? "Verifying..." : "Verify"}
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {isRegister && (
+                {/* Name Field (Sign Up Only) */}
+                {isSignUp && (
                   <div>
-                    <label className="block text-sm text-slate-200 mb-1">
-                      Full name
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Full Name
                     </label>
                     <input
                       type="text"
-                      className="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/60"
-                      placeholder="Your name"
                       value={name}
                       onChange={(e) => setName(e.target.value)}
+                      className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition"
+                      placeholder="John Doe"
+                      required
                     />
                   </div>
                 )}
 
+                {/* Email Field */}
                 <div>
-                  <label className="block text-sm text-slate-200 mb-1">
-                    Email
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Email Address
                   </label>
                   <input
                     type="email"
-                    className="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/60"
-                    placeholder="you@example.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
+                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition"
+                    placeholder="your@email.com"
+                    required
                   />
                 </div>
 
+                {/* Password Field */}
                 <div>
-                  <label className="block text-sm text-slate-200 mb-1">
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
                     Password
                   </label>
                   <input
                     type="password"
-                    className="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/60"
-                    placeholder="••••••••"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
+                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition"
+                    placeholder="••••••••"
+                    required
                   />
                 </div>
 
-                {isRegister && (
-                  <div className="grid grid-cols-2 gap-3">
+                {/* Confirm Password (Sign Up Only) */}
+                {isSignUp && (
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Confirm Password
+                    </label>
                     <input
-                      type="tel"
-                      className="rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/60"
-                      placeholder="Mobile (+91...)"
-                      value={phone}
-                      onChange={(e) => setPhone(e.target.value)}
-                    />
-                    <input
-                      type="text"
-                      className="rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/60"
-                      placeholder="City"
-                      value={city}
-                      onChange={(e) => setCity(e.target.value)}
-                    />
-                    <input
-                      type="text"
-                      className="rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/60"
-                      placeholder="State"
-                      value={stateRegion}
-                      onChange={(e) => setStateRegion(e.target.value)}
-                    />
-                    <input
-                      type="text"
-                      className="rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/60"
-                      placeholder="Country"
-                      value={country}
-                      onChange={(e) => setCountry(e.target.value)}
-                    />
-                    <input
-                      type="text"
-                      className="rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/60"
-                      placeholder="Pincode"
-                      value={pincode}
-                      onChange={(e) => setPincode(e.target.value)}
+                      type="password"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition"
+                      placeholder="••••••••"
+                      required
                     />
                   </div>
                 )}
 
+                {/* Submit Button */}
                 <button
-                  type="button"
-                  onClick={
-                    isRegister ? handleEmailRegister : handleEmailLogin
-                  }
+                  type="submit"
                   disabled={loading}
-                  className="inline-flex w-full items-center justify-center rounded-lg bg-emerald-500 px-4 py-2.5 text-sm font-medium text-white hover:bg-emerald-600 disabled:opacity-60"
+                  className="w-full py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg font-bold text-lg hover:from-blue-700 hover:to-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg hover:shadow-xl"
                 >
-                  {loading
-                    ? "Please wait..."
-                    : isRegister
-                    ? "Create account"
-                    : "Login"}
+                  {loading ? (
+                    <span className="flex items-center justify-center gap-2">
+                      <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                      </svg>
+                      Processing...
+                    </span>
+                  ) : isSignUp ? (
+                    "Create Account"
+                  ) : (
+                    "Sign In"
+                  )}
                 </button>
-              </div>
-            )}
-          </div>
 
-          {/* Right: explainer */}
-          <aside className="w-full md:w-72 rounded-2xl border border-slate-800 bg-gradient-to-b from-slate-900 to-slate-950 px-4 py-5 text-sm text-slate-300 space-y-3">
-            <h2 className="text-sm font-semibold text-white">
-              One account for everything
-            </h2>
-            <ul className="list-disc list-inside space-y-1 text-xs text-slate-300">
-              <li>Access all courses, live classes, and workshops.</li>
-              <li>Track orders, certificates, and learning progress.</li>
-              <li>Use the same login on web and mobile (future app).</li>
-            </ul>
-            <div className="mt-3 rounded-lg border border-emerald-700/50 bg-emerald-950/40 px-3 py-2 text-xs text-emerald-200">
-              Location details are used only to show{" "}
-              <span className="font-semibold">
-                nearby workshops and relevant products
-              </span>
-              . You can update them later from your profile.
+                {/* Toggle Sign In / Sign Up */}
+                <div className="text-center pt-4 border-t border-gray-200">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsSignUp(!isSignUp);
+                      setError("");
+                    }}
+                    className="text-sm text-gray-600 hover:text-blue-600 font-medium"
+                  >
+                    {isSignUp ? (
+                      <>
+                        Already have an account?{" "}
+                        <span className="text-blue-600 font-bold">Sign In</span>
+                      </>
+                    ) : (
+                      <>
+                        Don't have an account?{" "}
+                        <span className="text-blue-600 font-bold">Sign Up</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              </form>
             </div>
-          </aside>
-        </div>
-
-        {(error || success) && (
-          <div className="text-sm">
-            {error && <p className="text-rose-400">{error}</p>}
-            {success && <p className="text-emerald-400">{success}</p>}
           </div>
-        )}
 
-        {/* Container required for Firebase reCAPTCHA */}
-        <div id="recaptcha-container" />
-      </div>
+          {/* Benefits Section */}
+          <div className="mt-8 grid grid-cols-3 gap-4 text-center">
+            <div className="bg-white rounded-lg p-4 shadow-sm">
+              <div className="text-2xl mb-1">📚</div>
+              <p className="text-xs font-semibold text-gray-700">150+ Courses</p>
+            </div>
+            <div className="bg-white rounded-lg p-4 shadow-sm">
+              <div className="text-2xl mb-1">🎓</div>
+              <p className="text-xs font-semibold text-gray-700">Expert Teachers</p>
+            </div>
+            <div className="bg-white rounded-lg p-4 shadow-sm">
+              <div className="text-2xl mb-1">⭐</div>
+              <p className="text-xs font-semibold text-gray-700">Certificates</p>
+            </div>
+          </div>
+
+          {/* Back to Home */}
+          <div className="mt-6 text-center">
+            <Link
+              href="/classes"
+              className="text-sm text-gray-600 hover:text-blue-600 font-medium inline-flex items-center gap-2"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+              </svg>
+              Back to Classes
+            </Link>
+          </div>
+        </div>
+      </main>
+
+      <Footer />
     </div>
   );
 }

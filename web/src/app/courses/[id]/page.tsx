@@ -190,6 +190,15 @@ export default function PublicCoursePage() {
     try {
       setProcessingPayment(true);
 
+      // Debug: Check if Razorpay key is available
+      const razorpayKeyId = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID;
+      console.log("🔍 DEBUG - Razorpay Key ID:", razorpayKeyId ? `Found (${razorpayKeyId.substring(0, 10)}...)` : "NOT FOUND");
+      console.log("🔍 DEBUG - All env vars:", Object.keys(process.env).filter(k => k.includes('RAZORPAY')));
+
+      if (!razorpayKeyId) {
+        throw new Error("Razorpay credentials not configured. Please contact support.");
+      }
+
       // Step 1: Create order
       const orderResponse = await fetch("/api/razorpay/create-enrollment-order", {
         method: "POST",
@@ -217,7 +226,7 @@ export default function PublicCoursePage() {
 
       // Step 2: Open Razorpay checkout
       const options = {
-        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
+        key: razorpayKeyId,
         amount: orderData.amount,
         currency: orderData.currency,
         name: "Veena LMS",

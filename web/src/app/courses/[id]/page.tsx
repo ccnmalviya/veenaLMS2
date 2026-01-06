@@ -202,9 +202,14 @@ export default function PublicCoursePage() {
       });
 
       if (!orderResponse.ok) {
-        const errorData = await orderResponse.json().catch(() => ({ error: "Unknown error" }));
+        const errorData = await orderResponse.json().catch(() => ({ 
+          error: "Payment system not configured. Please contact support." 
+        }));
         console.error("Order creation failed:", errorData);
-        throw new Error(errorData.error || "Failed to create order");
+        
+        // Show helpful error message
+        const errorMsg = errorData.error || "Payment system is not configured yet. Please contact support.";
+        throw new Error(errorMsg);
       }
 
       const orderData = await orderResponse.json();

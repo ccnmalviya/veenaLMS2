@@ -202,10 +202,13 @@ export default function PublicCoursePage() {
       });
 
       if (!orderResponse.ok) {
-        throw new Error("Failed to create order");
+        const errorData = await orderResponse.json().catch(() => ({ error: "Unknown error" }));
+        console.error("Order creation failed:", errorData);
+        throw new Error(errorData.error || "Failed to create order");
       }
 
       const orderData = await orderResponse.json();
+      console.log("Order created successfully:", orderData);
 
       // Step 2: Open Razorpay checkout
       const options = {
@@ -262,7 +265,7 @@ export default function PublicCoursePage() {
       razorpay.open();
     } catch (error: any) {
       console.error("Error initiating payment:", error);
-      alert("Failed to initiate payment. Please try again.");
+      alert(`Failed to initiate payment: ${error.message || "Please try again"}`);
     } finally {
       setProcessingPayment(false);
     }

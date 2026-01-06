@@ -21,15 +21,12 @@ export function Header() {
   const [search, setSearch] = useState("");
   const [user, setUser] = useState<User | null>(null);
   const [showUserMenu, setShowUserMenu] = useState(false);
-  const [allItems, setAllItems] = useState<SearchItem[]>([]);
+  const [allCourses, setAllCourses] = useState<SearchItem[]>([]);
   const [suggestionsOpen, setSuggestionsOpen] = useState(false);
   const [shopEnabled, setShopEnabled] = useState(false);
 
-  // Decide what we are searching based on current page
-  const isClassesPage = pathname?.startsWith("/classes");
-  const searchPlaceholder = isClassesPage
-    ? "Search courses"
-    : "Search products";
+  // Always search courses only
+  const searchPlaceholder = "Search courses";
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (u) => setUser(u));
@@ -56,56 +53,79 @@ export function Header() {
     return () => unsubscribe();
   }, []);
 
-  // Load a lightweight list of products once for search suggestions
+  // Load courses for search suggestions
   useEffect(() => {
-    const loadItems = async () => {
+    const loadCourses = async () => {
       try {
-        const snapshot = await getDocs(collection(db, "store_items"));
-        const items: SearchItem[] = [];
+        const snapshot = await getDocs(collection(db, "courses"));
+        const courses: SearchItem[] = [];
         snapshot.forEach((doc) => {
           const data = doc.data() as any;
-          const title = (data.title || data.name || "").toString();
-          if (!title) return;
-          items.push({
-            id: doc.id,
-            title,
-            type: data.type || data.itemType,
-          });
+          // Only include published courses
+          if (data.status === "published") {
+            const title = (data.title || "").toString();
+            if (!title) return;
+            courses.push({
+              id: doc.id,
+              title,
+              type: "course",
+            });
+          }
         });
-        setAllItems(items);
+        setAllCourses(courses);
       } catch (error) {
-        console.error("Error loading items for search suggestions:", error);
+        console.error("Error loading courses for search:", error);
       }
     };
-    loadItems();
+    loadCourses();
   }, []);
 
   const filteredSuggestions = useMemo(() => {
     const term = search.trim().toLowerCase();
     if (!term) return [];
-    return allItems
-      .filter((item) => item.title.toLowerCase().includes(term))
+    return allCourses
+      .filter((course) => course.title.toLowerCase().includes(term))
       .slice(0, 7);
-  }, [allItems, search]);
+  }, [allCourses, search]);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const term = search.trim();
+    const term = search.trim().toLowerCase();
     if (!term) return;
 
-    const query = encodeURIComponent(term);
-    if (isClassesPage) {
-      router.push(`/classes?search=${query}`);
+    // Find exact or closest match
+    const exactMatch = allCourses.find((course) => 
+      course.title.toLowerCase() === term
+    );
+    
+    if (exactMatch) {
+      // Direct navigate to course
+      router.push(`/courses/${exactMatch.id}`);
+      setSuggestionsOpen(false);
+      setSearch("");
     } else {
-      router.push(`/?search=${query}`);
+      // Find best match
+      const bestMatch = allCourses.find((course) =>
+        course.title.toLowerCase().includes(term)
+      );
+      
+      if (bestMatch) {
+        router.push(`/courses/${bestMatch.id}`);
+        setSuggestionsOpen(false);
+        setSearch("");
+      } else {
+        // No match found, go to classes page with search
+        router.push(`/classes?search=${encodeURIComponent(term)}`);
+        setSuggestionsOpen(false);
+      }
     }
   };
 
-  const handleSuggestionClick = (item: SearchItem) => {
+  const handleSuggestionClick = (course: SearchItem) => {
     setSuggestionsOpen(false);
-    setSearch(item.title);
-    // Go directly to product detail for a more "Google result" feel
-    router.push(`/item/${item.id}`);
+    setSearch("");
+    // Go directly to course page
+    router.push(`/courses/${course.id}`);
   };
 
   const handleLogout = async () => {
@@ -153,21 +173,22 @@ export function Header() {
               {suggestionsOpen && filteredSuggestions.length > 0 && (
                 <div className="absolute left-0 right-0 top-full mt-1 rounded-2xl border border-gray-200 bg-white shadow-lg z-40">
                   <ul className="max-h-72 overflow-y-auto py-1 text-sm">
-                    {filteredSuggestions.map((item) => (
-                      <li key={item.id}>
+                    {filteredSuggestions.map((course) => (
+                      <li key={course.id}>
                         <button
                           type="button"
-                          onClick={() => handleSuggestionClick(item)}
-                          className="flex w-full items-center justify-between px-3 py-2 hover:bg-gray-50"
+                          onClick={() => handleSuggestionClick(course)}
+                          className="flex w-full items-center gap-3 px-4 py-3 hover:bg-blue-50 transition"
                         >
-                          <span className="truncate text-left text-gray-800">
-                            {item.title}
+                          <svg className="w-5 h-5 text-blue-600 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M10.394 2.08a1 1 0 00-.788 0l-7 3a1 1 0 000 1.84L5.25 8.051a.999.999 0 01.356-.257l4-1.714a1 1 0 11.788 1.838L7.667 9.088l1.94.831a1 1 0 00.787 0l7-3a1 1 0 000-1.838l-7-3zM3.31 9.397L5 10.12v4.102a8.969 8.969 0 00-1.05-.174 1 1 0 01-.89-.89 11.115 11.115 0 01.25-3.762zM9.3 16.573A9.026 9.026 0 007 14.935v-3.957l1.818.78a3 3 0 002.364 0l5.508-2.361a11.026 11.026 0 01.25 3.762 1 1 0 01-.89.89 8.968 8.968 0 00-5.35 2.524 1 1 0 01-1.4 0zM6 18a1 1 0 001-1v-2.065a8.935 8.935 0 00-2-.712V17a1 1 0 001 1z" />
+                          </svg>
+                          <span className="truncate text-left text-gray-800 font-medium">
+                            {course.title}
                           </span>
-                          {item.type && (
-                            <span className="ml-2 rounded-full bg-gray-100 px-2 py-0.5 text-[10px] uppercase tracking-wide text-gray-500">
-                              {item.type}
-                            </span>
-                          )}
+                          <span className="ml-auto text-xs text-blue-600 flex-shrink-0">
+                            View →
+                          </span>
                         </button>
                       </li>
                     ))}
@@ -299,21 +320,22 @@ export function Header() {
             {suggestionsOpen && filteredSuggestions.length > 0 && (
               <div className="absolute left-0 right-0 top-full mt-1 rounded-2xl border border-gray-200 bg-white shadow-lg z-40">
                 <ul className="max-h-72 overflow-y-auto py-1 text-sm">
-                  {filteredSuggestions.map((item) => (
-                    <li key={item.id}>
+                  {filteredSuggestions.map((course) => (
+                    <li key={course.id}>
                       <button
                         type="button"
-                        onClick={() => handleSuggestionClick(item)}
-                        className="flex w-full items-center justify-between px-3 py-2 hover:bg-gray-50"
+                        onClick={() => handleSuggestionClick(course)}
+                        className="flex w-full items-center gap-3 px-4 py-3 hover:bg-blue-50 transition"
                       >
-                        <span className="truncate text-left text-gray-800">
-                          {item.title}
+                        <svg className="w-5 h-5 text-blue-600 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                          <path d="M10.394 2.08a1 1 0 00-.788 0l-7 3a1 1 0 000 1.84L5.25 8.051a.999.999 0 01.356-.257l4-1.714a1 1 0 11.788 1.838L7.667 9.088l1.94.831a1 1 0 00.787 0l7-3a1 1 0 000-1.838l-7-3zM3.31 9.397L5 10.12v4.102a8.969 8.969 0 00-1.05-.174 1 1 0 01-.89-.89 11.115 11.115 0 01.25-3.762zM9.3 16.573A9.026 9.026 0 007 14.935v-3.957l1.818.78a3 3 0 002.364 0l5.508-2.361a11.026 11.026 0 01.25 3.762 1 1 0 01-.89.89 8.968 8.968 0 00-5.35 2.524 1 1 0 01-1.4 0zM6 18a1 1 0 001-1v-2.065a8.935 8.935 0 00-2-.712V17a1 1 0 001 1z" />
+                        </svg>
+                        <span className="truncate text-left text-gray-800 font-medium">
+                          {course.title}
                         </span>
-                        {item.type && (
-                          <span className="ml-2 rounded-full bg-gray-100 px-2 py-0.5 text-[10px] uppercase tracking-wide text-gray-500">
-                            {item.type}
-                          </span>
-                        )}
+                        <span className="ml-auto text-xs text-blue-600 flex-shrink-0">
+                          View →
+                        </span>
                       </button>
                     </li>
                   ))}

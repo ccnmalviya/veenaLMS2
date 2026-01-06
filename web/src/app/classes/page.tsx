@@ -612,8 +612,8 @@ function ClassesPageContent() {
         {/* 3. Upcoming live classes / offline workshop */}
         <UpcomingSessions />
 
-        {/* 4. Explore Courses - Only changes with search, NOT with category selection */}
-        <section className="py-12 bg-white">
+        {/* 4. Explore Courses - Animated Carousel */}
+        <section className="py-12 bg-white overflow-hidden">
           <div className="container mx-auto px-4">
             <h2 className="text-3xl font-bold mb-2">
               {searchQuery 
@@ -632,51 +632,89 @@ function ClassesPageContent() {
                   : "No courses available at the moment."}
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                {recommendedCourses.map((course) => (
-                  <Link
-                    key={course.id}
-                    href={`/courses/${course.id}`}
-                    className="bg-gray-50 rounded-xl border border-gray-200 p-4 hover:shadow-md transition"
-                  >
-                    <div className="h-32 bg-gray-200 rounded-md mb-3 relative overflow-hidden">
-                      {course.thumbnailImage ? (
-                        <S3Image
-                          src={course.thumbnailImage}
-                          alt={course.title}
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs">
-                          No Image
-                        </div>
-                      )}
-                    </div>
-                    <h3 className="font-semibold text-sm line-clamp-2">
-                      {course.title}
-                    </h3>
-                    <p className="text-xs text-gray-500 mt-1">
-                      {course.category || "Course"} · {course.level || "All Levels"}
-                    </p>
-                    {course.price && (
-                      <p className="text-xs font-semibold text-blue-600 mt-2">
-                        {course.discountedPrice ? (
-                          <>
-                            <span className="line-through text-gray-400 mr-2">
-                              {formatPrice(course.price)}
-                            </span>
-                            {formatPrice(course.discountedPrice)}
-                          </>
+              <div className="relative">
+                {/* Animated Course Cards */}
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                  {recommendedCourses.map((course, index) => (
+                    <Link
+                      key={course.id}
+                      href={`/courses/${course.id}`}
+                      className="bg-gray-50 rounded-xl border border-gray-200 p-4 hover:shadow-md transition course-card-animate"
+                      style={{
+                        animation: `slideInRotate 0.8s ease-out ${index * 0.15}s backwards`,
+                      }}
+                    >
+                      <div className="h-32 bg-gray-200 rounded-md mb-3 relative overflow-hidden">
+                        {course.thumbnailImage ? (
+                          <S3Image
+                            src={course.thumbnailImage}
+                            alt={course.title}
+                            className="w-full h-full object-cover"
+                          />
                         ) : (
-                          formatPrice(course.price)
+                          <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs">
+                            No Image
+                          </div>
                         )}
+                      </div>
+                      <h3 className="font-semibold text-sm line-clamp-2">
+                        {course.title}
+                      </h3>
+                      <p className="text-xs text-gray-500 mt-1">
+                        {course.category || "Course"} · {course.level || "All Levels"}
                       </p>
-                    )}
-                  </Link>
-                ))}
+                      {course.price && (
+                        <p className="text-xs font-semibold text-blue-600 mt-2">
+                          {course.discountedPrice ? (
+                            <>
+                              <span className="line-through text-gray-400 mr-2">
+                                {formatPrice(course.price)}
+                              </span>
+                              {formatPrice(course.discountedPrice)}
+                            </>
+                          ) : (
+                            formatPrice(course.price)
+                          )}
+                        </p>
+                      )}
+                    </Link>
+                  ))}
+                </div>
               </div>
             )}
           </div>
+
+          {/* Animation Styles */}
+          <style jsx>{`
+            @keyframes slideInRotate {
+              0% {
+                opacity: 0;
+                transform: translateX(-100px) rotate(-15deg) scale(0.8);
+              }
+              50% {
+                opacity: 0.5;
+                transform: translateX(20px) rotate(5deg) scale(0.95);
+              }
+              100% {
+                opacity: 1;
+                transform: translateX(0) rotate(0deg) scale(1);
+              }
+            }
+
+            @keyframes pulse {
+              0%, 100% {
+                opacity: 1;
+              }
+              50% {
+                opacity: 0.5;
+              }
+            }
+
+            .course-card-animate:hover {
+              transform: translateY(-5px) rotate(1deg);
+              transition: transform 0.3s ease;
+            }
+          `}</style>
         </section>
 
         {/* 5. Category Courses - Shows courses when a category is selected */}
